@@ -4,6 +4,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -12,7 +13,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -24,7 +28,15 @@ import java.util.Set;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
+
     ImageView ivBTCheck;
+
+    //ui
+    EditText edtSend;
+    Button btnSend;
+    TextView tvResult;
+
+    //bluetooth
     BluetoothAdapter bluetoothAdapter;
     static final int REQUEST_ENABLE_BT = 10;
     int pairedDeviceCount = 0;
@@ -43,7 +55,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //casting
+        edtSend = findViewById(R.id.edtSend);
+        btnSend = findViewById(R.id.btnSend);
+        tvResult = findViewById(R.id.tvResult);
         ivBTCheck = findViewById(R.id.ivBTCheck);
+
         ivBTCheck.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -51,6 +68,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         //앱이 실행되지마자 실행하게 하려면 onCreate에 바로 블루투스 체크
+        btnSend.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint("SetTextI18n")
+            @Override
+            public void onClick(View v) {
+                tvResult.setText("보내는 문자"+edtSend.getText().toString()+"\n");
+                //데이터 보냄
+                sendData(edtSend.getText().toString());//쓴 글자만 전송됨
+                edtSend.setText("");
+            }
+        });
+
     }
 
     void checkBluetooth() {
@@ -115,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
     void connectToSelectedDevice(String selectedDeviceName) {
            remoteDevice =getDeviceFromList(selectedDeviceName); // 객체를 돌려줌
        //블루투스를 연결하는 소켓..? hc 06 -  제품 식별자
-        UUID uuid = UUID.fromString("00001101-0000-1000-0000-00805f9b34fb");
+        UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
         try{
             socket = remoteDevice.createRfcommSocketToServiceRecord(uuid); //장치 아이디 보냄 ? 연결?
             socket.connect();// 연결
@@ -158,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public void run() { // 이 부분만 달라지게..?
                                             //수신된 문자열 데이터에 대한 처리 작업
+                                            tvResult.append("다시 받은 자료"+data);//전의 값이 지워지지 않게 append함
                                         }
                                     });
                                 }else {
